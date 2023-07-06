@@ -393,40 +393,45 @@
 	name = "vending"
 
 /datum/asset/spritesheet/vending/create_spritesheets()
-	for (var/k in GLOB.vending_products)
-		var/atom/item = k
-		if (!ispath(item, /atom))
-			continue
+	for (var/typepath in subtypesof(/obj/machinery/vending))
+		var/obj/machinery/vending/vendor = new typepath()
+		for (var/k in vendor.products + vendor.contraband + vendor.premium)
+			var/atom/item = k
+			if (!ispath(item, /atom))
+				continue
 
-		var/icon_file = initial(item.icon)
-		var/icon_state = initial(item.icon_state)
-		if(ispath(item, /obj/item/ammo_box))
-			var/obj/item/ammo_box/ammoitem = item
-			if(initial(ammoitem.multiple_sprites))
-				icon_state = "[icon_state]-[initial(ammoitem.max_ammo)]"
+			var/icon_file = initial(item.icon)
+			var/icon_state = initial(item.icon_state)
+			if(ispath(item, /obj/item/ammo_box))
+				var/obj/item/ammo_box/ammoitem = item
+				if(initial(ammoitem.multiple_sprites))
+					icon_state = "[icon_state]-[initial(ammoitem.max_ammo)]"
 
-		#ifdef UNIT_TESTS
-		var/icon_states_list = icon_states(icon_file)
-		if (!(icon_state in icon_states_list))
-			var/icon_states_string
-			for (var/an_icon_state in icon_states_list)
-				if (!icon_states_string)
-					icon_states_string = "[json_encode(an_icon_state)](\ref[an_icon_state])"
-				else
-					icon_states_string += ", [json_encode(an_icon_state)](\ref[an_icon_state])"
-	
-			stack_trace("[item] does not have a valid icon state, icon=[icon_file], icon_state=[json_encode(icon_state)](\ref[icon_state]), icon_states=[icon_states_string]")
-			continue
-		#endif
+			#ifdef UNIT_TESTS
+			var/icon_states_list = icon_states(icon_file)
+			if (!(icon_state in icon_states_list))
+				var/icon_states_string
+				for (var/an_icon_state in icon_states_list)
+					if (!icon_states_string)
+						icon_states_string = "[json_encode(an_icon_state)](\ref[an_icon_state])"
+					else
+						icon_states_string += ", [json_encode(an_icon_state)](\ref[an_icon_state])"
 
-		var/icon/I = icon(icon_file, icon_state, SOUTH)
-		var/c = initial(item.color)
-		if (!isnull(c) && c != "#FFFFFF")
-			I.Blend(c, ICON_MULTIPLY)
+				stack_trace("[item] does not have a valid icon state, icon=[icon_file], icon_state=[json_encode(icon_state)](\ref[icon_state]), icon_states=[icon_states_string]")
+				continue
+			#endif
 
-		var/imgid = replacetext(replacetext("[item]", "/obj/item/", ""), "/", "-")
+			var/icon/I = icon(icon_file, icon_state, SOUTH)
+			var/c = initial(item.color)
+			if (!isnull(c) && c != "#FFFFFF")
+				I.Blend(c, ICON_MULTIPLY)
 
-		Insert(imgid, I)
+			var/imgid = replacetext(replacetext("[item]", "/obj/item/", ""), "/", "-")
+
+			Insert(imgid, I)
+
+		// uhhhh yea
+		qdel(vendor)
 
 /datum/asset/spritesheet/uplink
 	name = "uplink"
